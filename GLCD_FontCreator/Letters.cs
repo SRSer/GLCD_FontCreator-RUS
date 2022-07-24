@@ -58,10 +58,19 @@ namespace GLCD_FontCreator
     /// <param name="fo">The FontOptimizer serving character bitmaps</param>
     /// <param name="target">Width target setting</param>
     /// <returns>The maxsize of all added characters</returns>
-    public Size Add( Char c, FontOptimizer fo, FontOptimizer.WidthTarget target )
+    public Size Add( int c, FontOptimizer fo, FontOptimizer.WidthTarget target )
     {
-      LetterBase l = m_letterFactory();
-      Size s = l.CreateChar( c, fo, target );
+
+           Encoding win1251 = Encoding.GetEncoding(1251);
+
+
+            byte[] bytes2 = new byte[4];
+
+            bytes2[3] = (byte)c;
+
+            string display2 = win1251.GetString(new byte[] { bytes2[3] });
+            LetterBase l = m_letterFactory();
+      Size s = l.CreateChar(c, fo, target );
       MaxSize.Width = Math.Max( MaxSize.Width, s.Width );
       MaxSize.Height = Math.Max( MaxSize.Height, s.Height );
 

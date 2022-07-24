@@ -28,7 +28,7 @@ namespace GLCD_FontCreator
   /// </summary>
   abstract class LetterBase : List<Byte>
   {
-    protected Char m_c = '\0';      // the letter handled
+    protected int m_c = '\0';      // the letter handled
 
 
     /// <summary>
@@ -39,7 +39,7 @@ namespace GLCD_FontCreator
     /// <param name="fo">The FontOptimzer serving the bitmaps</param>
     /// <param name="target">Width target setting</param>
     /// <returns>The size of the created character</returns>
-    abstract public Size CreateChar( Char c, FontOptimizer fo, FontOptimizer.WidthTarget target );
+    abstract public Size CreateChar( int c, FontOptimizer fo, FontOptimizer.WidthTarget target );
 
     /// <summary>
     /// Returns the formatted HexByte String representation of this character

@@ -77,7 +77,7 @@ namespace GLCD_FontCreator.FontCreators
       /// <param name="fo">The FontOptimzer serving the bitmaps</param>
       /// <param name="target">Width target setting</param>
       /// <returns>The size of the created character</returns>
-      public override Size CreateChar( Char c, FontOptimizer fo, FontOptimizer.WidthTarget target )
+      public override Size CreateChar( int c, FontOptimizer fo, FontOptimizer.WidthTarget target )
       {
         m_c = c;
 
@@ -138,7 +138,15 @@ namespace GLCD_FontCreator.FontCreators
             perLine = 0;
           }
         }
-        ret += String.Format( "  // char ({0,3:D3}) '{1}'\n\n", Convert.ToByte( m_c ), m_c ); // describe this fragment and NL
+                Encoding win1251 = Encoding.GetEncoding(1251);
+
+                byte[] bytes2 = new byte[4];
+
+                bytes2[3] = (byte)m_c;
+
+                string display2 = win1251.GetString(new byte[] { bytes2[3] });
+                
+                ret += String.Format( "  // char ({0,3:D3}) '{1}'\n\n", win1251.GetBytes(display2)[0], display2); // describe this fragment and NL
 
         return ret;
       }
@@ -153,14 +161,24 @@ namespace GLCD_FontCreator.FontCreators
     public GLCD_FC2_Compatible( FontOptimizer fo ) : base( fo ) { }
 
 
-    /// <summary>
-    /// Creates a complete font file and returns it as String
-    /// </summary>
-    /// <param name="firstChar">The character to start with</param>
-    /// <param name="charCount">The number of characters to include by inc. the Chars Ordinal (ASCII 7bit only)</param>
-    /// <param name="widthTarget">Width target setting</param>
-    /// <returns>The created font file as String</returns>
-    public override String FontFile( Char firstChar, int charCount, FontOptimizer.WidthTarget widthTarget )
+        static string UNICODEToWin1251(string sourceStr)
+        {
+            Encoding unicode = Encoding.Unicode;
+            Encoding win1251 = Encoding.GetEncoding("Windows-1251");
+            byte[] utf8Bytes = unicode.GetBytes(sourceStr);
+            byte[] win1251Bytes = Encoding.Convert(unicode, win1251, utf8Bytes);
+            return win1251.GetString(win1251Bytes);
+        }
+
+
+        /// <summary>
+        /// Creates a complete font file and returns it as String
+        /// </summary>
+        /// <param name="firstChar">The character to start with</param>
+        /// <param name="charCount">The number of characters to include by inc. the Chars Ordinal (ASCII 7bit only)</param>
+        /// <param name="widthTarget">Width target setting</param>
+        /// <returns>The created font file as String</returns>
+        public override String FontFile( int firstChar, int charCount, FontOptimizer.WidthTarget widthTarget )
     {
       String ret = "";
 
@@ -169,9 +187,27 @@ namespace GLCD_FontCreator.FontCreators
       CharCount = charCount;
 
       m_letters = new Letters( LetterFactory ); // create font machine.. and submit the factory
-      // create string
-      int lastChar = Convert.ToChar( Convert.ToByte(FirstChar) + CharCount -  1);
-      for ( Char c = FirstChar; c <= lastChar; c++ ) {
+                                                // create string
+                                                      Encoding win1251 = Encoding.GetEncoding(1251);
+            //     int x = Convert.ToByte(FirstChar) + CharCount - 1;
+                  
+            //     int lastChar = word[0]; //xc  dc
+
+           //int intVal = (int)Char.GetNumericValue(FirstChar);
+            int intVal = FirstChar;
+        //    Console.WriteLine(intVal);
+            byte[] bytes = new byte[4];
+
+            bytes[3] = (byte)intVal;
+
+            string display1 = win1251.GetString(new byte[] { bytes[3] });
+            string word = UNICODEToWin1251(display1);
+
+
+            //  int lastChar = Convert.ToChar(Convert.ToByte(FirstChar) + CharCount - 1);
+            int lastChar = win1251.GetBytes(display1)[0] + CharCount - 1;
+            //      Console.WriteLine(lastChar);
+            for ( int c = FirstChar; c <= lastChar; c++ ) {
 
         Size s = m_letters.Add( c, m_fo, widthTarget ); // --> this will essentially capture all characters bits via Letter instance
 
@@ -198,7 +234,8 @@ namespace GLCD_FontCreator.FontCreators
 
       // code portion
       ret += CodeStart( totalSize );
-      if ( !Monospace ) ret += m_letters.SizeTable.GetBytes( ); // fixed fonts don't have a size table
+           
+            if ( !Monospace ) ret += m_letters.SizeTable.GetBytes( ); // fixed fonts don't have a size table
 
       // all font code now
       ret += m_letters.GetBytes( );
@@ -294,17 +331,44 @@ namespace GLCD_FontCreator.FontCreators
     {
       // create the header here
       String ret = "";
-      Char lastChar = Convert.ToChar( Convert.ToByte(m_fo.FirstChar) + CharCount - 1);
+            //  Char lastChar = Convert.ToChar( Convert.ToByte(m_fo.FirstChar) + CharCount - 1);
+            Encoding win1251 = Encoding.GetEncoding("Windows-1251");
+       //     Console.WriteLine("m_fo.FirstChar:" + m_fo.FirstChar);
+            int intVal = m_fo.FirstChar;
+            byte[] bytes = new byte[4];
 
-      // write some header
-      ret += String.Format( "//\n" );
+            bytes[3] = (byte)intVal;
+
+            string display1 = win1251.GetString(new byte[] { bytes[3] });
+
+
+
+            //  char character = char.Parse(display1);
+            //  int intVal1 = character + CharCount - 1;
+            // // byte[] bytes1 = new byte[4];
+            // Console.WriteLine("m_fo.FirstChar1:"+display1);
+            // bytes1[3] = (byte)intVal1;
+
+            //  Char lastChar = char.Parse(win1251.GetString( new byte[] { bytes1[3] }));
+            //   Char lastChar = Convert.ToChar(256);
+            int lastChar = m_fo.FirstChar + CharCount - 1;
+
+            byte[] bytes2 = new byte[4];
+
+            bytes2[3] = (byte)lastChar;
+
+            string display2 = win1251.GetString(new byte[] { bytes2[3] });
+
+
+            // write some header
+            ret += String.Format( "//\n" );
       ret += String.Format( "// Created by {1} on {0}\n", DateTime.Now.ToShortDateString( ), FontCreatorName );
       ret += String.Format( "//\n" );
       ret += String.Format( "//   Font Name:  {0}\n", FontNameCreated );
       ret += String.Format( "//   Orig. Name: {0}\n", Name );
       ret += String.Format( "//\n" );
-      ret += String.Format( "//   Start Char: {0,3:D3} '{1}'\n", Convert.ToByte( FirstChar ), FirstChar );
-      ret += String.Format( "//   End Char:   {0,3:D3} '{1}'\n", Convert.ToByte( lastChar ), lastChar );
+      ret += String.Format( "//   Start Char: {0,3:D3} '{1}'\n",  win1251.GetBytes(display1)[0], display1);
+      ret += String.Format( "//   End Char:   {0,3:D3} '{1}'\n", win1251.GetBytes(display2)[0], display2);
       ret += String.Format( "//   # Chars:    {0}\n", CharCount );
       ret += String.Format( "//\n" );
       ret += String.Format( "//   Height:     {0}\n", Height );

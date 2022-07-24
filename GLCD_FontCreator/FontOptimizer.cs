@@ -43,8 +43,10 @@ namespace GLCD_FontCreator
 
     public Font FontToUse;
 
-    // test item
-    public Char FirstChar { get; set; }
+        // test item
+
+
+        public int FirstChar { get; set; }
     public int CharCount { get; set; }
 
     // guiding targets
@@ -101,16 +103,20 @@ namespace GLCD_FontCreator
     /// <param name="font">The font to use</param>
     /// <param name="s">The string to paint</param>
     /// <returns></returns>
+    /// 
     private Bitmap GetStringBitmap( Font font, String s )
     {
-      // get the size needed to paint the string in one line with the font given
-      Bitmap fontImage = new Bitmap( 1600, 200 );// biggg to have all printed on one line which is needed for long strings and large fonts
+            Encoding win1251 = Encoding.GetEncoding(1251);
+            int first = win1251.GetBytes(s)[0];
+//            Console.WriteLine("s:" + s+"     num:"+ first);
+            // get the size needed to paint the string in one line with the font given
+            Bitmap fontImage = new Bitmap( 1600, 200 );// biggg to have all printed on one line which is needed for long strings and large fonts
       Graphics g = Graphics.FromImage( fontImage );
       StringFormat newStringFormat = new StringFormat();
       newStringFormat.Alignment = StringAlignment.Near;
       newStringFormat.LineAlignment = StringAlignment.Near;
       newStringFormat.Trimming = StringTrimming.None;
-      Size preferredSize = Size.Ceiling(g.MeasureString( s, font, new Size(1600,200), newStringFormat ));
+      Size preferredSize = Size.Ceiling(g.MeasureString( s, font, new Size(1800,200), newStringFormat ));
       g.Dispose( );
 
       // get a new bitmap with optimal size for painting stuff
@@ -268,9 +274,30 @@ namespace GLCD_FontCreator
 
       // create string
       String testString = "";
-      int lastChar = Convert.ToChar( Convert.ToByte(FirstChar) + CharCount -  1);
-      for ( Char c = FirstChar; c <= lastChar; c++ ) {
-        testString += c;
+            Encoding win1251 = Encoding.GetEncoding(1251);
+
+            int intVal = FirstChar;
+
+            byte[] bytes = new byte[4];
+
+            bytes[3] = (byte)intVal;
+
+            string display1 = win1251.GetString(new byte[] { bytes[3] });
+
+            //  int lastChar = Convert.ToChar(Convert.ToByte(FirstChar) + CharCount - 1);
+            int lastChar = win1251.GetBytes(display1)[0] + CharCount - 1;
+
+
+        //    int lastChar = Convert.ToChar( Convert.ToByte(FirstChar) + CharCount -  1);
+      for ( int c = FirstChar; c <= lastChar; c++ ) {
+             
+
+                byte[] bytes6 = new byte[4];
+
+                bytes6[3] = (byte)c;
+
+                string display6 = win1251.GetString(new byte[] { bytes6[3] });
+                testString += display6;
       }
 
       // scan for the first size that meets the conditions (just increment the font and test)
@@ -298,8 +325,17 @@ namespace GLCD_FontCreator
       // now we have the font to use i.e. the height match
       // establish charwidth information
       Rectangle tmpRect = new Rectangle( 1000, ScanlineStart, 1, FinalHeight ); // init small to grow later..
-      for ( Char c = FirstChar; c <= lastChar; c++ ) {
-        Bitmap fontImage = GetStringBitmap( FontToUse, Convert.ToString(c) ); // raw image
+      for ( int c = FirstChar; c <= lastChar; c++ ) {
+
+                
+
+                byte[] bytes2 = new byte[4];
+
+                bytes2[3] = (byte)c;
+
+                string display2 = win1251.GetString(new byte[] { bytes2[3] });
+
+                Bitmap fontImage = GetStringBitmap( FontToUse, display2); // raw image
         if ( tmpRect.X == 1000 )
           tmpRect.X = fontImage.Width / 2; // clutch to start in the middle of the rect with Unions
         Rectangle wRect = GetMinimumWidthRect(fontImage); // determine the horizontal bounds (vertical ones are from global)
@@ -322,12 +358,24 @@ namespace GLCD_FontCreator
     {
       // create string
       String testString = "";
-      int lastChar = Convert.ToChar( Convert.ToByte(FirstChar) + CharCount -  1);
-      for ( Char c = FirstChar; c <= lastChar; c++ ) {
-        testString += c;
-      }
+      int lastChar = FirstChar + CharCount;
+     // for ( int c = FirstChar; c <= lastChar; c++ ) {
+     //   testString += c;
+     // }
+            var encoding = Encoding.GetEncoding(1251);
+            var chars3 = new char[1];
+            var bytes3 = new byte[1];
 
-      Bitmap fontImage = GetStringBitmap( FontToUse, testString );
+            for (int i = FirstChar; i < lastChar; i++)
+            {
+                bytes3[0] = (byte)i;
+                encoding.GetChars(bytes3, 0, 1, chars3, 0);
+                testString += chars3[0];
+                //   Console.WriteLine("{0} {1}", i, chars3[0]);
+            }
+
+         //   Console.WriteLine("testString =", testString);
+            Bitmap fontImage = GetStringBitmap( FontToUse, testString );
       fontImage.Save( fName + ".png", ImageFormat.Png );
       fontImage.Dispose( );
     }
@@ -340,11 +388,19 @@ namespace GLCD_FontCreator
     /// <param name="c">The character to paint</param>
     /// <param name="target">The target width to apply</param>
     /// <returns>A Red on Black bitmap of the character</returns>
-    public Bitmap GetMapForChar( Char c, WidthTarget target )
+    public Bitmap GetMapForChar( int c, WidthTarget target )
     {
-      // if target width == 0 get minimum width
+            // if target width == 0 get minimum width
+            Encoding win1251 = Encoding.GetEncoding(1251);
 
-      Bitmap fontImage = GetStringBitmap( FontToUse, Convert.ToString(c) );
+
+            byte[] bytes2 = new byte[4];
+
+            bytes2[3] = (byte)c;
+
+            string display2 = win1251.GetString(new byte[] { bytes2[3] });
+
+            Bitmap fontImage = GetStringBitmap( FontToUse, display2);
 
       // init for WT_Mono
       Rectangle cutRect = MinimumRect;

@@ -53,7 +53,7 @@ namespace GLCD_FontCreator.FontCreators
     public int Width { get; set; }
     public int Height { get; set; }
     public Boolean Monospace { get; set; }
-    public Char FirstChar { get; set; }
+    public int FirstChar { get; set; }
     public int CharCount { get; set; }
     public int CodeSize { get; set; }
 
@@ -106,8 +106,18 @@ namespace GLCD_FontCreator.FontCreators
         ret += "_b";
       if ( m_fo.FontToUse.Italic )
         ret += "_i";
-      ret += String.Format( "_{0,3:D3}", Convert.ToByte( m_fo.FirstChar ) );
-      int lastCharNum = Convert.ToByte(m_fo.FirstChar) + CharCount - 1;
+            Encoding win1251 = Encoding.GetEncoding(1251);
+            int intValue = m_fo.FirstChar;
+
+            byte[] bytes = new byte[4];
+
+
+            bytes[3] = (byte)intValue;
+
+           string  display4 = win1251.GetString(new byte[] { bytes[3] });
+         //   int first = win1251.GetBytes(txFirstChar.Text)[0];
+            ret += String.Format( "_{0,3:D3}", win1251.GetBytes(display4)[0] );
+      int lastCharNum = m_fo.FirstChar + CharCount;
       ret += String.Format( "_{0,3:D3}", lastCharNum );
 
       return ret;
@@ -153,8 +163,8 @@ namespace GLCD_FontCreator.FontCreators
     /// <param name="charCount">The number of characters to include by inc. the Chars Ordinal (ASCII 7bit only)</param>
     /// <param name="widthTarget">Width target setting</param>
     /// <returns>The created font file as String</returns>
-    abstract public String FontFile( Char firstChar, int charCount, FontOptimizer.WidthTarget widthTarget );
-
+    abstract public String FontFile( int firstChar, int charCount, FontOptimizer.WidthTarget widthTarget );
+        
     /*
     
     in general a font file is created by concatenating
