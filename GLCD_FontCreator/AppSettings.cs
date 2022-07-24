@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 
 namespace GLCD_FontCreator
 {
+
   //Application settings wrapper class
   sealed class AppSettings : ApplicationSettingsBase
   {

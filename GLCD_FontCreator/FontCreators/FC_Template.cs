@@ -80,7 +80,7 @@ namespace GLCD_FontCreator.FontCreators
       /// <param name="fo">The FontOptimzer serving the bitmaps</param>
       /// <param name="target">Width target setting</param>
       /// <returns>The size of the created character</returns>
-      public override Size CreateChar( Char c, FontOptimizer fo, FontOptimizer.WidthTarget target )
+      public override Size CreateChar( int c, FontOptimizer fo, FontOptimizer.WidthTarget target )
       {
         m_c = c;
 
@@ -163,7 +163,7 @@ namespace GLCD_FontCreator.FontCreators
     /// <param name="charCount">The number of characters to include by inc. the Chars Ordinal (ASCII 7bit only)</param>
     /// <param name="widthTarget">Width target setting</param>
     /// <returns>The created font file as String</returns>
-    public override String FontFile( Char firstChar, int charCount, FontOptimizer.WidthTarget widthTarget )
+    public override String FontFile( int firstChar, int charCount, FontOptimizer.WidthTarget widthTarget )
     {
       String ret = "";
 
@@ -174,7 +174,8 @@ namespace GLCD_FontCreator.FontCreators
       m_letters = new Letters( LetterFactory ); // create font machine.. and submit the factory
       // create string
       int lastChar = Convert.ToChar( Convert.ToByte(FirstChar) + CharCount -  1);
-      for ( Char c = FirstChar; c <= lastChar; c++ ) {
+ //           Console.WriteLine(lastChar);
+            for ( int c = FirstChar; c <= lastChar; c++ ) {
 
         Size s = m_letters.Add( c, m_fo, widthTarget ); // --> this will essentially capture all characters bits via Letter instance
 
@@ -189,7 +190,9 @@ namespace GLCD_FontCreator.FontCreators
       UInt16 totalSize = 6; // descriptor code size 
       if ( !Monospace ) totalSize += ( UInt16 )m_letters.SizeTable.Count; // fixed fonts don't have a size table
       totalSize += ( UInt16 )m_letters.CodeSize( );
-      CodeSize = totalSize;
+  //          Console.WriteLine("iek");
+  //          Console.WriteLine(m_letters);
+            CodeSize = totalSize;
 
       // start output
       FontNameCreated = ModName( );
@@ -201,12 +204,13 @@ namespace GLCD_FontCreator.FontCreators
 
       // code portion
       ret += CodeStart( totalSize );
-      if ( !Monospace ) ret += m_letters.SizeTable.GetBytes( ); // fixed fonts don't have a size table
+   //         Console.WriteLine();
+            if ( !Monospace ) ret += m_letters.SizeTable.GetBytes( ); // fixed fonts don't have a size table
 
       // all font code now
       ret += m_letters.GetBytes( );
       // remove last comma from hex bytes
-      int lc = ret.LastIndexOf(',');
+            int lc = ret.LastIndexOf(',');
       if ( lc != -1 ) ret = ret.Remove( lc, 1 );
 
       // write the code trailer
@@ -259,18 +263,19 @@ namespace GLCD_FontCreator.FontCreators
     /// <returns>A string containing the needed items</returns>
     protected override String CodeStart( UInt16 totalSize )
     {
-      /*
+            /*
 
-      static uint8_t new_Font[] PROGMEM = {
-          0x03, 0xF0, // size
-          0x0C, // width
-          0x12, // height
-          0x20, // first char
-          0x21, // char count
+            static uint8_t new_Font[] PROGMEM = {
+                0x03, 0xF0, // size
+                0x0C, // width
+                0x12, // height
+                0x20, // first char
+                0x21, // char count
 
-      */
+            */
+         
       String ret = "";
-      // this is AVR (Arduino) style to creae fonts in prog. memory
+      // this is AVR (Arduino) style to create fonts in prog. memory
       ret += String.Format( "static const uint8_t {0}[] PROGMEM = {{\n", FontNameCreated ); // Escape { to print it
       if ( Monospace )
         ret += String.Format( "\t{0} // size is 0 - Monospace font\n", hex( ( UInt16 )0 ) ); // mono needs size = 0
